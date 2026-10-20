@@ -1,0 +1,28 @@
+{% extends 'gestion_dotaciones/base.html' %}
+{% block title %}Operadores | DotApp{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><span class="eyebrow">Gestión interna</span><h1>Operadores</h1><p>Administra las personas encargadas de operar las funciones de RH, bodega, compras y administración.</p></div>
+  <a class="btn btn-primary" href="{% url 'crear_operador' %}">+ Nuevo operador</a>
+</div>
+<div class="panel table-panel">
+  <div class="table-wrap"><table><thead><tr><th>Operador</th><th>Rol</th><th>Alta</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+  {% for operador in operadores %}
+  <tr>
+    <td><strong>{{ operador.nombre }}</strong><span class="muted">{{ operador.email }}</span></td>
+    <td><span class="badge">{{ operador.get_rol_display }}</span></td>
+    <td>{{ operador.fecha_alta|date:'d/m/Y' }}</td>
+    <td>{% if operador.activo %}<span class="badge success">Activo</span>{% else %}<span class="badge danger">Inactivo</span>{% endif %}</td>
+    <td class="actions">
+      <a class="btn btn-ghost btn-sm" href="{% url 'editar_operador' operador.id %}">Editar</a>
+      <form method="post" action="{% url 'cambiar_estado_operador' operador.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-ghost btn-sm" type="submit">{% if operador.activo %}Desactivar{% else %}Activar{% endif %}</button></form>
+    </td>
+  </tr>
+  {% empty %}<tr><td colspan="5" class="empty">No hay operadores registrados. Crea uno para comenzar.</td></tr>{% endfor %}
+</tbody></table></div>
+</div>
+<div class="grid-2" style="margin-top:18px">
+  <section class="panel"><h2>¿Qué hace un operador?</h2><p>Es el usuario interno que gestiona las operaciones del sistema. Su rol determina el proceso que apoya, aunque en este prototipo los permisos son informativos.</p></section>
+  <section class="panel"><h2>Roles disponibles</h2><div class="compact-list"><div><strong>Administrador</strong><small>Supervisa la plataforma.</small></div><div><strong>Recursos Humanos</strong><small>Gestiona perfiles y entregas.</small></div><div><strong>Bodega</strong><small>Controla inventario y entregas.</small></div><div><strong>Compras</strong><small>Atiende necesidades de reorden.</small></div></div></section>
+</div>
+{% endblock %}

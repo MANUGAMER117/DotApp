@@ -1,0 +1,6 @@
+{% extends 'gestion_dotaciones/base.html' %}
+{% block title %}Alerta preventiva | DotApp{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">RF-02</span><h1>Alerta preventiva</h1><p>Notificación para <strong>{{ usuario.nombre }}</strong> sobre <strong>{{ dotacion }}</strong>.</p></div></div>
+<form method="post" class="panel form-panel">{% csrf_token %}<div class="form-grid">{% for field in form %}<div class="field {% if field.name == 'mensaje' %}span-2{% endif %}"><label>{{ field.label }}</label>{{ field }}</div>{% endfor %}</div><div class="form-actions"><a class="btn btn-ghost" href="{% url 'dashboard' %}">Cancelar</a><button class="btn btn-primary" type="submit">Emitir alerta</button></div></form>
+{% endblock %}

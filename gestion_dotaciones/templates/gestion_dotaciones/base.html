@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#102a43">
+  <meta name="description" content="DotApp: gestión y trazabilidad de dotaciones empresariales.">
+  <title>{% block title %}DotApp{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'gestion_dotaciones/css/styles.css' %}">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">D</span><div><strong>DotApp</strong><small>CONTROL DE DOTACIONES</small></div></div>
+    <div class="nav-caption"><strong>DotApp Workspace</strong></div>
+    <nav>
+      <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><span class="nav-icon">⌂</span><span>Dashboard</span></a>
+      <a class="nav-link {% if 'operador' in request.resolver_match.url_name|default:'' %}active{% endif %}" href="{% url 'listar_operadores' %}"><span class="nav-icon">⚙</span><span>Operadores</span></a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'listar_colaboradores' or request.resolver_match.url_name|default:'' == 'listar_usuarios' or request.resolver_match.url_name|default:'' == 'crear_usuario' or request.resolver_match.url_name|default:'' == 'editar_perfil' or request.resolver_match.url_name|default:'' == 'reservar_dotacion_usuario' or request.resolver_match.url_name|default:'' == 'reservar_dotacion' %}active{% endif %}" href="{% url 'listar_colaboradores' %}"><span class="nav-icon">◉</span><span>Colaboradores</span></a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'listar_reservas' or request.resolver_match.url_name == 'reservar_dotacion_usuario' or request.resolver_match.url_name == 'reservar_dotacion' %}active{% endif %}" href="{% url 'listar_reservas' %}"><span class="nav-icon">◷</span><span>Reservas</span></a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'inventario' %}active{% endif %}" href="{% url 'inventario' %}"><span class="nav-icon">▦</span><span>Inventario</span></a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'devoluciones' %}active{% endif %}" href="{% url 'devoluciones' %}"><span class="nav-icon">↩</span><span>Devoluciones</span></a>
+    </nav>
+    <div class="sidebar-note"></div><div class="sidebar-footer"><span class="status-dot"></span><span>Entorno de demostración</span></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-context">
+        <strong class="topbar-title">PLATAFORMA DE OPERACIONES</strong>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-status"><span id="networkDot" class="network-dot"></span><span id="networkText">Conectado</span></div>
+        <span class="topbar-divider" aria-hidden="true"></span>
+        <div class="account-chip">
+          
+        </div>
+      </div>
+    </header>
+
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="content">{% block content %}{% endblock %}</section>
+  </main>
+</div>
+<script>
+(function(){
+  const dot=document.getElementById('networkDot'), text=document.getElementById('networkText');
+  function sync(){const on=navigator.onLine; dot.classList.toggle('offline',!on); text.textContent=on?'Conectado':'Sin conexión';}
+  window.addEventListener('online',sync); window.addEventListener('offline',sync); sync();
+})();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends 'gestion_dotaciones/base.html' %}
+{% block title %}Dashboard | DotApp{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">Panel principal</span><h1>Resumen de dotaciones</h1><p>Controla perfiles, reservas, inventario, entregas y trazabilidad.</p></div><a class="btn btn-primary" href="{% url 'crear_usuario' %}">+ Nuevo colaborador</a></div>
+<div class="cards-4">
+  <div class="stat-card"><span>Colaboradores activos</span><strong>{{ usuarios_count }}</strong><small>Perfiles disponibles</small></div>
+  <div class="stat-card"><span>Reservas pendientes</span><strong>{{ reservas_pendientes }}</strong><small>Requieren gestión</small></div>
+  <div class="stat-card"><span>SKU con stock bajo</span><strong>{{ stock_bajo_count }}</strong><small>Revisar puntos de reorden</small></div>
+  <div class="stat-card"><span>Actas generadas</span><strong>{{ actas_count }}</strong><small>Entrega trazable</small></div>
+</div>
+<div class="grid-2">
+  <article class="panel"><div class="panel-head"><div><h2>Inventario crítico</h2><p>RF-03 · Puntos de reorden</p></div><a href="{% url 'inventario' %}">Ver todo →</a></div>{% if stock_bajo %}<div class="compact-list">{% for item in stock_bajo %}<div><div><strong>{{ item.nombre }}</strong><small>SKU {{ item.sku }} · stock {{ item.stock_total }}</small></div><span class="badge danger">Comprar {{ item.sugerencia_compra }}</span></div>{% endfor %}</div>{% else %}<div class="empty">No hay referencias por debajo del punto de reorden.</div>{% endif %}</article>
+  <article class="panel"><div class="panel-head"><div><h2>Próximas entregas</h2><p>RF-02 · Alertas preventivas</p></div><span class="badge">30 días</span></div>{% if entregas_proximas and alerta_dotacion %}<div class="compact-list">{% for perfil in entregas_proximas %}<div><div><strong>{{ perfil.usuario.nombre }}</strong><small>Entrega: {{ perfil.proxima_entrega }}</small></div><a class="btn btn-ghost btn-sm" href="{% url 'emitir_alerta_preventiva' perfil.usuario.id alerta_dotacion.id %}">Alertar</a></div>{% endfor %}</div>{% else %}<div class="empty">No hay entregas configuradas dentro de los próximos 30 días.</div>{% endif %}</article>
+</div>
+<div class="grid-2">
+  <article class="panel"><div class="panel-head"><div><h2>Últimas reservas</h2><p>Agenda y seguimiento</p></div><a href="{% url 'listar_reservas' %}">Abrir reservas →</a></div>{% if reservas %}<div class="compact-list">{% for reserva in reservas %}<div><div><strong>{{ reserva.usuario.nombre }}</strong><small>{{ reserva.dotacion }} · {{ reserva.get_estado_display }}</small></div><span class="badge">{{ reserva.fecha_reserva|date:'d/m/Y' }}</span></div>{% endfor %}</div>{% else %}<div class="empty">Aún no hay reservas registradas.</div>{% endif %}</article>
+  <article class="panel"><div class="panel-head"><div><h2>Últimas actas</h2><p>RF-04 · Firma y trazabilidad</p></div></div>{% if entregas %}<div class="compact-list">{% for entrega in entregas %}<div><div><strong>{{ entrega.acta_numero }}</strong><small>{{ entrega.reserva.usuario.nombre }} · {{ entrega.reserva.dotacion }}</small></div><a href="{% url 'acta_pdf' entrega.id %}" class="btn btn-ghost btn-sm">PDF</a></div>{% endfor %}</div>{% else %}<div class="empty">Aún no hay actas generadas.</div>{% endif %}</article>
+</div>
+{% endblock %}

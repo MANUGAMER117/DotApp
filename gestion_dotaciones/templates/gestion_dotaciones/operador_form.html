@@ -1,0 +1,6 @@
+{% extends 'gestion_dotaciones/base.html' %}
+{% block title %}{{ title }} | DotApp{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">Gestión interna</span><h1>{{ title }}</h1><p>{{ subtitle }}</p></div><a class="btn btn-ghost" href="{% url 'listar_operadores' %}">← Volver</a></div>
+<form method="post" class="panel form-panel">{% csrf_token %}<div class="form-grid">{% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-error">{{ field.errors|striptags }}</div>{% endif %}</div>{% endfor %}</div><div class="form-actions"><a class="btn btn-ghost" href="{% url 'listar_operadores' %}">Cancelar</a><button class="btn btn-primary" type="submit">Guardar operador</button></div></form>
+{% endblock %}

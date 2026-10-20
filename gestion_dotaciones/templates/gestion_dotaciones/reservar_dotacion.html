@@ -1,0 +1,6 @@
+{% extends 'gestion_dotaciones/base.html' %}
+{% block title %}Nueva reserva | DotApp{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">RF-01</span><h1>Nueva reserva</h1><p>Solicita dotación para <strong>{{ usuario.nombre }}</strong> y valida disponibilidad al seleccionar un SKU.</p></div></div>
+<form method="post" class="panel form-panel">{% csrf_token %}<div class="info-box"><strong>Notificación</strong><span>Al guardar, DotApp deja preparada una notificación por correo y añade la solicitud a la agenda.</span></div><div class="form-grid">{% for field in form %}<div class="field {% if field.name == 'observaciones' %}span-2{% endif %}"><label>{{ field.label }}</label>{{ field }}</div>{% endfor %}</div><div class="form-actions"><a class="btn btn-ghost" href="{% url 'listar_reservas' %}">Cancelar</a><button class="btn btn-primary" type="submit">Registrar reserva</button></div></form>
+{% endblock %}

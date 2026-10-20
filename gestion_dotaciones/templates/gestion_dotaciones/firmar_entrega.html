@@ -1,0 +1,40 @@
+{% extends 'gestion_dotaciones/base.html' %}
+{% block title %}Firma de entrega | DotApp{% endblock %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">RF-04 · RNF-04</span><h1>Firma de entrega</h1><p>{{ reserva.usuario.nombre }} recibirá {{ reserva.dotacion }}.</p></div><span class="badge success">Captura móvil</span></div>
+<div class="grid-2"><section class="panel"><h2>Validación de inventario</h2><p class="muted">Selecciona la bodega desde la que se hará la salida. Al firmar, el stock baja en 1 unidad.</p><form id="firmaForm" method="post">{% csrf_token %}<div class="field"><label>Bodega de salida</label><select class="form-control" id="inventario_id" name="inventario_id" required>{% for item in inventarios %}<option value="{{ item.id }}" {% if item.cantidad == 0 %}disabled{% endif %}>{{ item.bodega.nombre }} - {{ item.cantidad }} disponibles</option>{% empty %}<option>No hay inventario</option>{% endfor %}</select></div><div class="field"><label>ID del receptor</label><input class="form-control" name="identificador_receptor" value="{{ reserva.usuario.email }}"></div><input type="hidden" name="latitud" id="latitud"><input type="hidden" name="longitud" id="longitud"><input type="hidden" name="firma_data" id="firma_data"><div class="signature-wrap"><canvas id="signaturePad" width="700" height="260"></canvas><div class="signature-footer"><span>Firma del colaborador receptor</span><button type="button" class="btn btn-ghost btn-sm" id="clearSignature">Limpiar</button></div></div><div id="offlineNotice" class="info-box hidden"><strong>Modo offline</strong><span>La interfaz puede capturar la firma sin cobertura. Esta demo guarda la captura localmente; al recuperar conexión puedes volver a enviar el formulario.</span></div><div class="form-actions"><a class="btn btn-ghost" href="{% url 'listar_reservas' %}">Cancelar</a><button class="btn btn-primary" type="submit">Firmar y generar acta</button></div></form></section><section class="panel"><h2>Datos de trazabilidad</h2><div class="trace-card"><div><span>Receptor</span><strong>{{ reserva.usuario.nombre }}</strong></div><div><span>Dotación</span><strong>{{ reserva.dotacion }}</strong></div><div><span>Fecha</span><strong id="traceDate">Se generará al confirmar</strong></div><div><span>Geolocalización</span><strong id="traceLocation">Solicitando...</strong></div></div></section></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const canvas=document.getElementById('signaturePad'), ctx=canvas.getContext('2d'); let drawing=false, hasInk=false;
+ctx.lineWidth=2.2; ctx.lineCap='round';
+function pos(e){const r=canvas.getBoundingClientRect(); const p=e.touches?e.touches[0]:e; return {x:(p.clientX-r.left)*(canvas.width/r.width),y:(p.clientY-r.top)*(canvas.height/r.height)};}
+function start(e){e.preventDefault(); drawing=true; const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);}
+function move(e){if(!drawing)return;e.preventDefault();const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();hasInk=true;}
+function end(){drawing=false;}
+canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);window.addEventListener('mouseup',end);canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',end);
+document.getElementById('clearSignature').onclick=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);hasInk=false;};
+function updateNetwork(){document.getElementById('offlineNotice').classList.toggle('hidden',navigator.onLine)}
+window.addEventListener('online',updateNetwork);window.addEventListener('offline',updateNetwork);updateNetwork();
+if(navigator.geolocation){navigator.geolocation.getCurrentPosition(p=>{document.getElementById('latitud').value=p.coords.latitude.toFixed(6);document.getElementById('longitud').value=p.coords.longitude.toFixed(6);document.getElementById('traceLocation').textContent=p.coords.latitude.toFixed(4)+', '+p.coords.longitude.toFixed(4);},()=>document.getElementById('traceLocation').textContent='No disponible');}else{document.getElementById('traceLocation').textContent='No compatible';}
+document.getElementById('traceDate').textContent=new Date().toLocaleString('es-CO');
+const form=document.getElementById('firmaForm');
+function csrf(){return form.querySelector('input[name=csrfmiddlewaretoken]').value;}
+function saveOffline(){
+  const data={csrf:csrf(),firma_data:canvas.toDataURL('image/png'),inventario_id:document.getElementById('inventario_id').value,identificador_receptor:form.querySelector('[name=identificador_receptor]').value,latitud:document.getElementById('latitud').value,longitud:document.getElementById('longitud').value};
+  localStorage.setItem('dotapp_offline_entrega_{{ reserva.id }}',JSON.stringify(data));
+}
+async function syncOffline(){
+  const key='dotapp_offline_entrega_{{ reserva.id }}', raw=localStorage.getItem(key);
+  if(!raw || !navigator.onLine)return;
+  try{
+    const data=JSON.parse(raw), body=new URLSearchParams();
+    Object.entries(data).forEach(([k,v])=>{if(k!=='csrf')body.append(k,v)});
+    const resp=await fetch(window.location.pathname,{method:'POST',headers:{'X-CSRFToken':data.csrf,'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body,credentials:'same-origin'});
+    if(resp.ok){localStorage.removeItem(key);window.location.href=resp.url;}
+  }catch(err){console.warn('No se pudo sincronizar la entrega',err);}
+}
+form.addEventListener('submit',e=>{if(!hasInk){e.preventDefault();alert('Registra la firma antes de continuar.');return;}document.getElementById('firma_data').value=canvas.toDataURL('image/png');if(!navigator.onLine){e.preventDefault();saveOffline();document.getElementById('offlineNotice').classList.remove('hidden');document.getElementById('offlineNotice').querySelector('span').textContent='Firma guardada en este dispositivo. Al recuperar conexión se intentará sincronizar automáticamente.';}});
+window.addEventListener('online',syncOffline);syncOffline();
+</script>
+{% endblock %}
