@@ -1,5 +1,8 @@
 # DotApp - prototipo funcional
 
+<img width="1599" height="766" alt="Sin título" src="https://github.com/user-attachments/assets/5aba3d81-34ce-429c-b537-0a998dd2d998" />
+
+
 Sistema Django para gestionar perfiles, reservas, inventario multibodega, alertas preventivas, devoluciones y entrega con firma digitalizada.
 
 ## Requisitos
